@@ -1,0 +1,12 @@
+﻿<ManagementPackFragment SchemaVersion="2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <TypeDefinitions>
+    <EntityTypes>
+      <RelationshipTypes>
+        <RelationshipType ID="GripMatix.HA.Remote.Monitoring.RootObject.hosts.ChildObject" Base="System!System.Hosting" Abstract="false" Accessibility="Public">
+          <Source ID="Source" Type="GripMatix.HA.Remote.Monitoring.RootObject"/>
+          <Target ID="Target" Type="GripMatix.HA.Remote.Monitoring.ChildObject"/>
+        </RelationshipType> 
+      </RelationshipTypes> 
+    </EntityTypes>
+  </TypeDefinitions>
+</ManagementPackFragment>

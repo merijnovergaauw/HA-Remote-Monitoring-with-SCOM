@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ManagementPack SchemaVersion="2.0" ContentReadable="true" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Manifest>
+    <Identity>
+      <ID>GripMatix.HA.Remote.Monitoring</ID>
+      <Version>1.0.0.3</Version>
+    </Identity>
+    <Name>GripMatix.HA.Remote.Monitoring</Name>
+    <References>
+      <Reference Alias="MSDL">
+        <ID>Microsoft.SystemCenter.DataWarehouse.Library</ID>
+        <Version>7.1.10226.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SC">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>7.0.8433.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Windows">
+        <ID>Microsoft.Windows.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Health">
+        <ID>System.Health.Library</ID>
+        <Version>7.0.8433.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SNL">
+        <ID>System.NetworkManagement.Library</ID>
+        <Version>7.1.10226.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Perf">
+        <ID>System.Performance.Library</ID>
+        <Version>7.0.8433.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <TypeDefinitions>
+    <EntityTypes>
+      <ClassTypes>
+        <ClassType ID="GripMatix.HA.Remote.Monitoring.RootObject" Accessibility="Public" Abstract="false" Base="SNL!System.NetworkManagement.Node" Hosted="false" Singleton="false" Extension="false"></ClassType>
+        <ClassType ID="GripMatix.HA.Remote.Monitoring.ChildObject" Accessibility="Public" Abstract="false" Base="System!System.ApplicationComponent" Hosted="true" Singleton="false">
+          <Property ID="Name" Key="true" Type="string" />
+          <Property ID="Target" Key="false" Type="string" />
+          <Property ID="RootObjectName" Key="false" Type="string" />
+          <Property ID="Meta" Key="false" Type="string" />
+        </ClassType>
+      </ClassTypes>
+      <RelationshipTypes>
+        <RelationshipType ID="GripMatix.HA.Remote.Monitoring.RootObject.hosts.ChildObject" Base="System!System.Hosting" Abstract="false" Accessibility="Public">
+          <Source ID="Source" Type="GripMatix.HA.Remote.Monitoring.RootObject" />
+          <Target ID="Target" Type="GripMatix.HA.Remote.Monitoring.ChildObject" />
+        </RelationshipType>
+      </RelationshipTypes>
+    </EntityTypes>
+    <SecureReferences>
+      <SecureReference ID="GripMatix.HA.Remote.Monitoring.RunAsProfile" Accessibility="Public" />
+    </SecureReferences>
+    <ModuleTypes>
+      <DataSourceModuleType ID="GripMatix.HA.Remote.Monitoring.ChildObject.Discovery.DS" Accessibility="Public">
+        <Configuration>
+          <xsd:element name="IntervalSeconds" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="IntervalSeconds" Selector="$Config/IntervalSeconds$" ParameterType="int" />
+        </OverrideableParameters>
+        <ModuleImplementation>
+          <Composite>
+            <MemberModules>
+              <DataSource ID="Scheduler" TypeID="System!System.Scheduler">
+                <Scheduler>
+                  <SimpleReccuringSchedule>
+                    <Interval Unit="Seconds">$Config/IntervalSeconds$</Interval>
+                    <SyncTime />
+                  </SimpleReccuringSchedule>
+                  <ExcludeDates />
+                </Scheduler>
+              </DataSource>
+              <ProbeAction ID="PowerShellProbe" TypeID="GripMatix.HA.Remote.Monitoring.ChildObject.Discovery.Probe"></ProbeAction>
+            </MemberModules>
+            <Composition>
+              <Node ID="PowerShellProbe">
+                <Node ID="Scheduler" />
+              </Node>
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.Discovery.Data</OutputType>
+      </DataSourceModuleType>
+      <DataSourceModuleType ID="GripMatix.HA.Remote.Monitoring.PropertyBag.DataSource.Performance.PropertyBag.Check" Accessibility="Internal" RunAs="GripMatix.HA.Remote.Monitoring.RunAsProfile">
+        <Configuration>
+          <xsd:element name="IntervalSeconds" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="SyncTime" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="Object" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="Counter" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="MonitorTarget" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="IntervalSeconds" Selector="$Config/IntervalSeconds$" ParameterType="int" />
+        </OverrideableParameters>
+        <ModuleImplementation>
+          <Composite>
+            <MemberModules>
+              <DataSource ID="DS" TypeID="GripMatix.HA.Remote.Monitoring.PropertyBag.DataSource.Monitoring.PropertyBag.Check">
+                <IntervalSeconds>$Config/IntervalSeconds$</IntervalSeconds>
+                <SyncTime>$Config/SyncTime$</SyncTime>
+                <MonitorTarget>$Config/MonitorTarget$</MonitorTarget>
+              </DataSource>
+              <ConditionDetection ID="MapToPerf" TypeID="Perf!System.Performance.DataGenericMapper">
+                <ObjectName>$Config/Object$</ObjectName>
+                <CounterName>$Config/Counter$</CounterName>
+                <InstanceName>$Target/Property[Type="GripMatix.HA.Remote.Monitoring.ChildObject"]/Target$</InstanceName>
+                <Value>$Data/Property[@Name="$Config/Counter$"]$</Value>
+              </ConditionDetection>
+            </MemberModules>
+            <Composition>
+              <Node ID="MapToPerf">
+                <Node ID="DS" />
+              </Node>
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>Perf!System.Performance.Data</OutputType>
+      </DataSourceModuleType>
+      <DataSourceModuleType ID="GripMatix.HA.Remote.Monitoring.PropertyBag.DataSource.Monitoring.PropertyBag.Check" Accessibility="Internal">
+        <Configuration>
+          <xsd:element name="IntervalSeconds" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="SyncTime" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="MonitorTarget" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </Configuration>
+        <OverrideableParameters></OverrideableParameters>
+        <ModuleImplementation Isolation="Any">
+          <Composite>
+            <MemberModules>
+              <DataSource ID="Schedule" TypeID="System!System.SimpleScheduler">
+                <IntervalSeconds>$Config/IntervalSeconds$</IntervalSeconds>
+                <SyncTime>$Config/SyncTime$</SyncTime>
+              </DataSource>
+              <ProbeAction ID="Script" TypeID="GripMatix.HA.Remote.Monitoring.PropertyBag.Probe.Monitoring.PropertyBag.Check">
+                <MonitorTarget>$Config/MonitorTarget$</MonitorTarget>
+              </ProbeAction>
+            </MemberModules>
+            <Composition>
+              <Node ID="Script">
+                <Node ID="Schedule" />
+              </Node>
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.PropertyBagData</OutputType>
+      </DataSourceModuleType>
+      <ProbeActionModuleType ID="GripMatix.HA.Remote.Monitoring.ChildObject.Discovery.Probe" Accessibility="Public">
+        <Configuration></Configuration>
+        <OverrideableParameters></OverrideableParameters>
+        <ModuleImplementation>
+          <Composite>
+            <MemberModules>
+              <ProbeAction TypeID="Windows!Microsoft.Windows.PowerShellDiscoveryProbe" ID="PowerShellProbe">
+                <ScriptName>ChildObjects.ps1</ScriptName>
+                <ScriptBody><![CDATA[## This script discovers Child Objects which are going to be managed by the Resource Pools that manage their Root Objects.
+## Author: Merijn Overgaauw (GripMatix)
+
+param($sourceId, $managedEntityId)
+$params = "SourceId: $sourceId, ManagedEntityId: $managedEntityId"
+
+# Constants
+$debug = $true
+$objectsToManagePath = "c:\SCOM\ChildObjects.csv"
+
+# Constants used for event logging
+$SCRIPT_NAME			= 'Discovery.ChildObjects.ps1'
+$EVENT_LEVEL_ERROR 		= 1
+$EVENT_LEVEL_WARNING 	= 2
+$EVENT_LEVEL_INFO 		= 4
+
+$SCRIPT_STARTED			= 1111
+$PROPERTYBAG_CREATED	= 1112
+$ERROR_GENERATED        = 1113
+$INFO_GENERATED         = 1114
+$SCRIPT_ENDED			= 1115
+
+#==================================================================================
+# Sub:		LogDebugEvent
+# Purpose:	Logs an informational event to the Operations Manager event log
+#			only if Debug argument is true
+#==================================================================================
+function Log-DebugEvent
+	{
+		param($eventNo, $eventLevel, $message)
+
+		$message = "`n" + $message
+		if ($debug)
+		{
+			$api.LogScriptEvent($SCRIPT_NAME,$eventNo,$eventLevel,$message)
+		}
+	}
+
+$api = New-Object -comObject 'MOM.ScriptAPI'
+$discoveryData = $api.CreateDiscoveryData(0, $SourceId, $ManagedEntityId)
+
+$message = "$SCRIPT_NAME script started.`nParameters:`n$params"
+Log-DebugEvent $SCRIPT_STARTED $EVENT_LEVEL_INFO $message
+
+$childObjects = Import-Csv "$objectsToManagePath" -Delimiter ","
+
+foreach ($childObject in $childObjects)
+	{
+	$rootObjectName = $childObject.RootObjectName
+	$rootObjectDeviceKey = $childObject.RootObjectDeviceKey
+	$childObjectName = $childObject.ChildObjectName
+	$childObjectTarget = $childObject.ChildObjectTarget
+	$childObjectMeta = $childObject.ChildObjectDescription
+
+	$Instance = $discoveryData.CreateClassInstance("$MPElement[Name='GripMatix.HA.Remote.Monitoring.RootObject']$")
+	$Instance.AddProperty("$MPElement[Name='SNL!System.NetworkManagement.Node']/DeviceKey$", "$rootObjectDeviceKey")
+	$Instance.AddProperty("$MPElement[Name='System!System.Entity']/DisplayName$", "$rootObjectName")
+	$discoveryData.AddInstance($Instance)
+
+	$Instance = $discoveryData.CreateClassInstance("$MPElement[Name='GripMatix.HA.Remote.Monitoring.ChildObject']$")
+	$Instance.AddProperty("$MPElement[Name='SNL!System.NetworkManagement.Node']/DeviceKey$", $rootObjectDeviceKey)
+	$Instance.AddProperty("$MPElement[Name='GripMatix.HA.Remote.Monitoring.ChildObject']/Name$", $childObjectName)
+	$Instance.AddProperty("$MPElement[Name='GripMatix.HA.Remote.Monitoring.ChildObject']/Target$", $childObjectTarget)
+	$Instance.AddProperty("$MPElement[Name='GripMatix.HA.Remote.Monitoring.ChildObject']/Meta$", $childObjectMeta)
+	$Instance.AddProperty("$MPElement[Name='GripMatix.HA.Remote.Monitoring.ChildObject']/RootObjectName$", $rootObjectName)
+	$Instance.AddProperty("$MPElement[Name='System!System.Entity']/DisplayName$", $childObjectName)
+	$discoveryData.AddInstance($Instance)
+	}	
+
+$discoveryData
+
+$message = "$SCRIPT_NAME script ended.`nParameters:`n$params"
+Log-DebugEvent $SCRIPT_ENDED $EVENT_LEVEL_INFO $message]]></ScriptBody>
+                <Parameters>
+                  <Parameter>
+                    <Name>sourceID</Name>
+                    <Value>$MPElement$</Value>
+                  </Parameter>
+                  <Parameter>
+                    <Name>managedEntityID</Name>
+                    <Value>$Target/Id$</Value>
+                  </Parameter>
+                </Parameters>
+                <TimeoutSeconds>300</TimeoutSeconds>
+              </ProbeAction>
+            </MemberModules>
+            <Composition>
+              <Node ID="PowerShellProbe" />
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.Discovery.Data</OutputType>
+        <InputType>System!System.BaseData</InputType>
+      </ProbeActionModuleType>
+      <ProbeActionModuleType ID="GripMatix.HA.Remote.Monitoring.PropertyBag.Probe.Monitoring.PropertyBag.Check" Accessibility="Internal">
+        <Configuration>
+          <xsd:element name="MonitorTarget" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </Configuration>
+        <ModuleImplementation Isolation="Any">
+          <Composite>
+            <MemberModules>
+              <ProbeAction ID="Script" TypeID="Windows!Microsoft.Windows.PowerShellPropertyBagTriggerOnlyProbe">
+                <ScriptName>Monitor.Check.ps1</ScriptName>
+                <ScriptBody><![CDATA[## This script monitors something.
+## Author: Merijn Overgaauw (GripMatix)
+
+param($monitorTarget)
+$params = "MonitorTarget: $monitorTarget"
+
+# Constants
+$debug = $true
+
+# Constants used for event logging
+$SCRIPT_NAME			= 'Monitor.Check1'
+$EVENT_LEVEL_ERROR 		= 1
+$EVENT_LEVEL_WARNING 	= 2
+$EVENT_LEVEL_INFO 		= 4
+
+$SCRIPT_STARTED			= 3111
+$PROPERTYBAG_CREATED	= 3112
+$ERROR_GENERATED        = 3113
+$INFO_GENERATED         = 3114
+$SCRIPT_ENDED			= 3115
+
+#==================================================================================
+function Log-DebugEvent
+	{
+		param($eventNo, $eventLevel, $message)
+
+		$message = "`n" + $message
+		if ($debug)
+		{
+			$api.LogScriptEvent($SCRIPT_NAME,$eventNo,$eventLevel,$message)
+		}
+	}
+#==================================================================================
+
+# Start script by setting up API object
+$api = New-Object -comObject 'MOM.ScriptAPI'
+
+$message = "$SCRIPT_NAME script started. Parameters:`n$params"
+Log-DebugEvent $SCRIPT_STARTED $EVENT_LEVEL_INFO $message
+
+$random = Get-Random -Minimum 1 -Maximum 100
+
+$cpuPct = Invoke-Command -ComputerName $monitorTarget -ScriptBlock {
+	Get-Ciminstance Win32_Processor | ? {$_.LoadPercentage -ne $null} | Measure-Object -Property LoadPercentage -Average | % {$_.Average}
+	}
+
+	
+$bag = $api.CreatePropertyBag()
+$bag.AddValue('CpuPct',$cpuPct)
+
+$bag
+
+$message = "CpuPct: $cpuPct"
+Log-DebugEvent $PROPERTYBAG_CREATED $EVENT_LEVEL_INFO $message
+
+$message = "$SCRIPT_NAME script ended. Parameters:`n$params"
+Log-DebugEvent $SCRIPT_ENDED $EVENT_LEVEL_INFO $message]]></ScriptBody>
+                <Parameters>
+                  <Parameter>
+                    <Name>MonitorTarget</Name>
+                    <Value>$Config/MonitorTarget$</Value>
+                  </Parameter>
+                </Parameters>
+                <TimeoutSeconds>300</TimeoutSeconds>
+              </ProbeAction>
+            </MemberModules>
+            <Composition>
+              <Node ID="Script" />
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.PropertyBagData</OutputType>
+        <TriggerOnly>true</TriggerOnly>
+      </ProbeActionModuleType>
+    </ModuleTypes>
+    <MonitorTypes>
+      <UnitMonitorType ID="GripMatix.HA.Remote.Monitoring.MonitorType.CpuPct.2state" Accessibility="Internal">
+        <MonitorTypeStates>
+          <MonitorTypeState ID="FAILED" NoDetection="false" />
+          <MonitorTypeState ID="SUCCESS" NoDetection="false" />
+        </MonitorTypeStates>
+        <Configuration>
+          <xsd:element name="IntervalSeconds" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="SyncTime" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="MonitorTarget" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="Property" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="PropertyThreshold" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="IntervalSeconds" Selector="$Config/IntervalSeconds$" ParameterType="int" />
+          <OverrideableParameter ID="PropertyThreshold" Selector="$Config/PropertyThreshold$" ParameterType="int" />
+        </OverrideableParameters>
+        <MonitorImplementation>
+          <MemberModules>
+            <DataSource ID="DS" TypeID="GripMatix.HA.Remote.Monitoring.PropertyBag.DataSource.Monitoring.PropertyBag.Check">
+              <IntervalSeconds>$Config/IntervalSeconds$</IntervalSeconds>
+              <SyncTime>$Config/SyncTime$</SyncTime>
+              <MonitorTarget>$Config/MonitorTarget$</MonitorTarget>
+            </DataSource>
+            <ConditionDetection ID="FilterSUCCESSStatus" TypeID="System!System.ExpressionFilter">
+              <Expression>
+                <SimpleExpression>
+                  <ValueExpression>
+                    <XPathQuery Type="Integer">Property[@Name='$Config/Property$']</XPathQuery>
+                  </ValueExpression>
+                  <Operator>LessEqual</Operator>
+                  <ValueExpression>
+                    <Value Type="Integer">$Config/PropertyThreshold$</Value>
+                  </ValueExpression>
+                </SimpleExpression>
+              </Expression>
+            </ConditionDetection>
+            <ConditionDetection ID="FilterFAILEDStatus" TypeID="System!System.ExpressionFilter">
+              <Expression>
+                <SimpleExpression>
+                  <ValueExpression>
+                    <XPathQuery Type="Integer">Property[@Name='$Config/Property$']</XPathQuery>
+                  </ValueExpression>
+                  <Operator>Greater</Operator>
+                  <ValueExpression>
+                    <Value Type="Integer">$Config/PropertyThreshold$</Value>
+                  </ValueExpression>
+                </SimpleExpression>
+              </Expression>
+            </ConditionDetection>
+          </MemberModules>
+          <RegularDetections>
+            <RegularDetection MonitorTypeStateID="FAILED">
+              <Node ID="FilterFAILEDStatus">
+                <Node ID="DS" />
+              </Node>
+            </RegularDetection>
+            <RegularDetection MonitorTypeStateID="SUCCESS">
+              <Node ID="FilterSUCCESSStatus">
+                <Node ID="DS" />
+              </Node>
+            </RegularDetection>
+          </RegularDetections>
+        </MonitorImplementation>
+      </UnitMonitorType>
+    </MonitorTypes>
+  </TypeDefinitions>
+  <Monitoring>
+    <Discoveries>
+      <Discovery ID="GripMatix.HA.Remote.Monitoring.ChildObject.Discovery" Target="SC!Microsoft.SystemCenter.RootManagementServer" Enabled="true" ConfirmDelivery="false" Remotable="true" Priority="Normal">
+        <Category>Discovery</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="GripMatix.HA.Remote.Monitoring.ChildObject" />
+        </DiscoveryTypes>
+        <DataSource ID="DS" TypeID="GripMatix.HA.Remote.Monitoring.ChildObject.Discovery.DS">
+          <IntervalSeconds>3600</IntervalSeconds>
+        </DataSource>
+      </Discovery>
+    </Discoveries>
+    <Rules>
+      <Rule ID="GripMatix.HA.Remote.Monitoring.PerformanceRule.CpuPct" Target="GripMatix.HA.Remote.Monitoring.ChildObject" Enabled="true" ConfirmDelivery="false" Remotable="true" Priority="Normal" DiscardLevel="100">
+        <Category>PerformanceCollection</Category>
+        <DataSources>
+          <DataSource ID="DS" TypeID="GripMatix.HA.Remote.Monitoring.PropertyBag.DataSource.Performance.PropertyBag.Check">
+            <IntervalSeconds>300</IntervalSeconds>
+            <SyncTime />
+            <Object>$Target/Property[Type="GripMatix.HA.Remote.Monitoring.ChildObject"]/Name$</Object>
+            <Counter>CpuPct</Counter>
+            <MonitorTarget>$Target/Property[Type="GripMatix.HA.Remote.Monitoring.ChildObject"]/Target$</MonitorTarget>
+          </DataSource>
+        </DataSources>
+        <WriteActions>
+          <WriteAction ID="CollectToDB" TypeID="SC!Microsoft.SystemCenter.CollectPerformanceData" />
+          <WriteAction ID="CollectToDW" TypeID="MSDL!Microsoft.SystemCenter.DataWarehouse.PublishPerformanceData" />
+        </WriteActions>
+      </Rule>
+    </Rules>
+    <Monitors>
+      <UnitMonitor ID="GripMatix.HA.Remote.Monitoring.Monitor.CpuPct" Accessibility="Internal" Enabled="true" Target="GripMatix.HA.Remote.Monitoring.ChildObject" ParentMonitorID="Health!System.Health.PerformanceState" Remotable="true" Priority="Normal" TypeID="GripMatix.HA.Remote.Monitoring.MonitorType.CpuPct.2state" ConfirmDelivery="false" RunAs="GripMatix.HA.Remote.Monitoring.RunAsProfile">
+        <Category>PerformanceHealth</Category>
+        <AlertSettings AlertMessage="GripMatix.HA.Remote.Monitoring.Monitor.CpuPct.AlertMessage">
+          <AlertOnState>Error</AlertOnState>
+          <AutoResolve>true</AutoResolve>
+          <AlertPriority>Normal</AlertPriority>
+          <AlertSeverity>MatchMonitorHealth</AlertSeverity>
+          <AlertParameters>
+            <AlertParameter1>$Data/Context/Property[@Name='CpuPct']$</AlertParameter1>
+          </AlertParameters>
+        </AlertSettings>
+        <OperationalStates>
+          <OperationalState ID="FAILED" MonitorTypeStateID="FAILED" HealthState="Error" />
+          <OperationalState ID="SUCCESS" MonitorTypeStateID="SUCCESS" HealthState="Success" />
+        </OperationalStates>
+        <Configuration>
+          <IntervalSeconds>300</IntervalSeconds>
+          <SyncTime />
+          <MonitorTarget>$Target/Property[Type="GripMatix.HA.Remote.Monitoring.ChildObject"]/Target$</MonitorTarget>
+          <Property>CpuPct</Property>
+          <PropertyThreshold>60</PropertyThreshold>
+        </Configuration>
+      </UnitMonitor>
+    </Monitors>
+  </Monitoring>
+  <Presentation>
+    <StringResources>
+      <StringResource ID="GripMatix.HA.Remote.Monitoring.Monitor.CpuPct.AlertMessage" />
+    </StringResources>
+  </Presentation>
+  <LanguagePacks>
+    <LanguagePack ID="ENU" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.RootObject">
+          <Name>HA Remote Monitoring Root Object</Name>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.ChildObject">
+          <Name>HA Remote Monitoring Child Object</Name>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.ChildObject" SubElementID="Name">
+          <Name>Name</Name>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.ChildObject" SubElementID="Target">
+          <Name>Target</Name>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.ChildObject" SubElementID="RootObjectName">
+          <Name>Root Object Name</Name>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.ChildObject" SubElementID="Meta">
+          <Name>Description</Name>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.ChildObject.Discovery">
+          <Name>HA Remote Monitoring Child Object</Name>
+          <Description></Description>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.PerformanceRule.CpuPct">
+          <Name>% CPU</Name>
+          <Description></Description>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.Monitor.CpuPct">
+          <Name>% CPU</Name>
+          <Description></Description>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.Monitor.CpuPct.AlertMessage">
+          <Name>% CPU is {0} which it too high</Name>
+          <Description>
+            % CPU is {0} which exceeded the threshold.
+          </Description>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.RunAsProfile">
+          <Name>GripMatix HA Remote Monitoring RunAs Profile</Name>
+          <Description></Description>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles></KnowledgeArticles>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>

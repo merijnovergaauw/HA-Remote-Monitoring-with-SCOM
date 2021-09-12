@@ -1,0 +1,53 @@
+﻿<ManagementPackFragment SchemaVersion="2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <TypeDefinitions>
+    <EntityTypes>
+      <ClassTypes>
+        <ClassType 
+          ID="GripMatix.HA.Remote.Monitoring.RootObject"
+          Accessibility="Public"
+          Abstract="false"
+          Base="SNL!System.NetworkManagement.Node"
+          Hosted="false"
+          Singleton="false"
+          Extension="false">
+        </ClassType>
+        <ClassType
+          ID="GripMatix.HA.Remote.Monitoring.ChildObject"
+          Accessibility="Public"
+          Abstract="false"
+          Base="System!System.ApplicationComponent"
+          Hosted="true"
+          Singleton="false">
+          <Property ID="Name" Key="true" Type="string" />
+          <Property ID="Target" Key="false" Type="string" />
+          <Property ID="RootObjectName" Key="false" Type="string" />
+          <Property ID="Meta" Key="false" Type="string" />
+        </ClassType>        
+      </ClassTypes>
+    </EntityTypes>
+  </TypeDefinitions>
+  <LanguagePacks>
+    <LanguagePack ID="ENU" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.RootObject">
+          <Name>HA Remote Monitoring Root Object</Name>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.ChildObject">
+          <Name>HA Remote Monitoring Child Object</Name>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.ChildObject" SubElementID="Name">
+          <Name>Name</Name>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.ChildObject" SubElementID="Target">
+          <Name>Target</Name>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.ChildObject" SubElementID="RootObjectName">
+          <Name>Root Object Name</Name>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.ChildObject" SubElementID="Meta">
+          <Name>Description</Name>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPackFragment>

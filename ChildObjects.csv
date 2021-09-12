@@ -1,0 +1,5 @@
+﻿ChildObjectName,ChildObjectTarget,ChildObjectDescription,RootObjectName,RootObjectDeviceKey
+object01,worker01.gripmatix.com,meta1,om01.gripmatix.com,192.168.100.123
+object02,worker02.gripmatix.com,meta2,om01.gripmatix.com,192.168.100.123
+object03,worker01.untrusted.local,meta3,gw01.untrusted.local,192.168.200.111
+object04,worker02.untrusted.local,meta4,gw01.untrusted.local,192.168.200.111

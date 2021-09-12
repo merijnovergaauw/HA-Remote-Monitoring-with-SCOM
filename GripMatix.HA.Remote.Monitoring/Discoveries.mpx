@@ -1,0 +1,101 @@
+﻿<ManagementPackFragment SchemaVersion="2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <TypeDefinitions>
+    <ModuleTypes>
+      <!-- ChildObject.Discovery.DS -->
+      <DataSourceModuleType
+        ID="GripMatix.HA.Remote.Monitoring.ChildObject.Discovery.DS" 
+        Accessibility="Public">
+        <Configuration>
+          <xsd:element name="IntervalSeconds" type="xsd:integer"/>
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="IntervalSeconds" Selector="$Config/IntervalSeconds$" ParameterType="int" />
+        </OverrideableParameters>
+        <ModuleImplementation>
+          <Composite>
+            <MemberModules>
+              <DataSource ID="Scheduler" TypeID="System!System.Scheduler">
+                <Scheduler>
+                  <SimpleReccuringSchedule>
+                    <Interval Unit="Seconds">$Config/IntervalSeconds$</Interval>
+                    <SyncTime/>
+                  </SimpleReccuringSchedule>
+                  <ExcludeDates/>
+                </Scheduler>
+              </DataSource>
+              <ProbeAction ID="PowerShellProbe" TypeID="GripMatix.HA.Remote.Monitoring.ChildObject.Discovery.Probe">
+              </ProbeAction>
+            </MemberModules>
+            <Composition>
+              <Node ID="PowerShellProbe">
+                <Node ID="Scheduler" />
+              </Node>
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.Discovery.Data</OutputType>
+      </DataSourceModuleType>
+      <!-- ChildObject.Discovery.Probe-->
+      <ProbeActionModuleType
+        ID="GripMatix.HA.Remote.Monitoring.ChildObject.Discovery.Probe"
+        Accessibility="Public">
+        <Configuration>
+        </Configuration>
+        <OverrideableParameters>
+        </OverrideableParameters>
+        <ModuleImplementation>
+          <Composite>
+            <MemberModules>
+              <ProbeAction
+                TypeID="Windows!Microsoft.Windows.PowerShellDiscoveryProbe"
+                ID="PowerShellProbe">
+                <ScriptName>ChildObjects.ps1</ScriptName>
+                <ScriptBody>$IncludeFileContent/Discovery.ChildObjects.ps1$</ScriptBody>
+                <Parameters>
+                  <Parameter>
+                    <Name>sourceID</Name>
+                    <Value>$MPElement$</Value>
+                  </Parameter>
+                  <Parameter>
+                    <Name>managedEntityID</Name>
+                    <Value>$Target/Id$</Value>
+                  </Parameter>
+                </Parameters>
+                <TimeoutSeconds>300</TimeoutSeconds>
+              </ProbeAction>
+            </MemberModules>
+            <Composition>
+              <Node ID="PowerShellProbe" />
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.Discovery.Data</OutputType>
+        <InputType>System!System.BaseData</InputType>
+      </ProbeActionModuleType>
+    </ModuleTypes>
+  </TypeDefinitions>
+  <Monitoring>
+    <Discoveries>
+      <!-- ChildObject.Discovery -->
+      <Discovery ID="GripMatix.HA.Remote.Monitoring.ChildObject.Discovery" Target="SC!Microsoft.SystemCenter.RootManagementServer" Enabled="true" ConfirmDelivery="false" Remotable="true" Priority="Normal">
+        <Category>Discovery</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="GripMatix.HA.Remote.Monitoring.ChildObject" />
+        </DiscoveryTypes>
+        <DataSource ID="DS" TypeID="GripMatix.HA.Remote.Monitoring.ChildObject.Discovery.DS">
+          <IntervalSeconds>3600</IntervalSeconds>
+        </DataSource>
+      </Discovery>      
+    </Discoveries>
+  </Monitoring>
+  <LanguagePacks>
+    <LanguagePack ID="ENU" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.ChildObject.Discovery">
+          <Name>HA Remote Monitoring Child Object</Name>
+          <Description></Description>
+        </DisplayString>        
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPackFragment>

@@ -1,0 +1,237 @@
+﻿<ManagementPackFragment SchemaVersion="2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"> 
+  <TypeDefinitions>
+    <ModuleTypes>      
+      <!-- DataSource.Performance.PropertyBag.Check -->
+      <DataSourceModuleType ID ="GripMatix.HA.Remote.Monitoring.PropertyBag.DataSource.Performance.PropertyBag.Check" Accessibility ="Internal" RunAs="GripMatix.HA.Remote.Monitoring.RunAsProfile">
+        <Configuration>
+          <xsd:element name="IntervalSeconds" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+          <xsd:element name="SyncTime" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+          <xsd:element name="Object" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>          
+          <xsd:element name="Counter" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+          <xsd:element name="MonitorTarget" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="IntervalSeconds" Selector="$Config/IntervalSeconds$" ParameterType="int" />
+        </OverrideableParameters>
+        <ModuleImplementation>
+          <Composite>
+            <MemberModules>
+              <DataSource ID ="DS" TypeID ="GripMatix.HA.Remote.Monitoring.PropertyBag.DataSource.Monitoring.PropertyBag.Check">
+                <IntervalSeconds>$Config/IntervalSeconds$</IntervalSeconds>
+                <SyncTime>$Config/SyncTime$</SyncTime>
+                <MonitorTarget>$Config/MonitorTarget$</MonitorTarget>
+              </DataSource>
+              <ConditionDetection ID ="MapToPerf" TypeID ="Perf!System.Performance.DataGenericMapper">
+                <ObjectName>$Config/Object$</ObjectName>
+                <CounterName>$Config/Counter$</CounterName>
+                <InstanceName>$Target/Property[Type="GripMatix.HA.Remote.Monitoring.ChildObject"]/Target$</InstanceName> 
+                <Value>$Data/Property[@Name="$Config/Counter$"]$</Value>
+              </ConditionDetection>
+            </MemberModules>
+            <Composition>
+              <Node ID ="MapToPerf">
+                <Node ID ="DS"/>
+              </Node>
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>Perf!System.Performance.Data</OutputType>
+      </DataSourceModuleType>              
+      <!-- DataSource.Monitoring.PropertyBag.Check -->
+      <DataSourceModuleType ID ="GripMatix.HA.Remote.Monitoring.PropertyBag.DataSource.Monitoring.PropertyBag.Check" Accessibility ="Internal">
+        <Configuration>
+          <xsd:element name="IntervalSeconds" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+          <xsd:element name="SyncTime" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+          <xsd:element name="MonitorTarget" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+        </Configuration>
+        <OverrideableParameters>
+        </OverrideableParameters>
+        <ModuleImplementation Isolation="Any">
+          <Composite>
+            <MemberModules>
+              <DataSource ID="Schedule" TypeID ="System!System.SimpleScheduler">
+                <IntervalSeconds>$Config/IntervalSeconds$</IntervalSeconds>
+                <SyncTime>$Config/SyncTime$</SyncTime>
+              </DataSource>
+              <ProbeAction ID="Script" TypeID ="GripMatix.HA.Remote.Monitoring.PropertyBag.Probe.Monitoring.PropertyBag.Check">
+                <MonitorTarget>$Config/MonitorTarget$</MonitorTarget>
+              </ProbeAction>
+            </MemberModules>
+            <Composition>
+              <Node ID ="Script">
+                <Node ID ="Schedule" />
+              </Node>
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.PropertyBagData</OutputType>
+      </DataSourceModuleType>
+      <!-- Probe.Monitoring.PropertyBag.Check -->
+      <ProbeActionModuleType ID="GripMatix.HA.Remote.Monitoring.PropertyBag.Probe.Monitoring.PropertyBag.Check" Accessibility="Internal">
+        <Configuration>
+          <xsd:element name="MonitorTarget" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+        </Configuration>
+        <ModuleImplementation Isolation="Any">
+          <Composite>
+            <MemberModules>
+              <ProbeAction ID="Script" TypeID="Windows!Microsoft.Windows.PowerShellPropertyBagTriggerOnlyProbe">
+                <ScriptName>Monitor.Check.ps1</ScriptName>
+                <ScriptBody>$IncludeFileContent/Monitor.Check1.ps1$</ScriptBody>
+                <Parameters>
+                  <Parameter>
+                    <Name>MonitorTarget</Name>
+                    <Value>$Config/MonitorTarget$</Value>
+                  </Parameter>
+                </Parameters>
+                <TimeoutSeconds>300</TimeoutSeconds>
+              </ProbeAction>
+            </MemberModules>
+            <Composition>
+              <Node ID ="Script"/>
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.PropertyBagData</OutputType>
+        <TriggerOnly>true</TriggerOnly>
+      </ProbeActionModuleType>
+    </ModuleTypes>
+    <MonitorTypes>
+      <!-- MonitorType.CpuPct.2state -->
+      <UnitMonitorType ID="GripMatix.HA.Remote.Monitoring.MonitorType.CpuPct.2state" Accessibility="Internal">
+        <MonitorTypeStates>
+          <MonitorTypeState ID="FAILED" NoDetection="false"/>
+          <MonitorTypeState ID="SUCCESS" NoDetection="false"/>
+        </MonitorTypeStates>
+        <Configuration>
+          <xsd:element name="IntervalSeconds" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+          <xsd:element name="SyncTime" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+          <xsd:element name="MonitorTarget" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+          <xsd:element name="Property" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+          <xsd:element name="PropertyThreshold" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="IntervalSeconds" Selector="$Config/IntervalSeconds$" ParameterType="int" />
+          <OverrideableParameter ID="PropertyThreshold" Selector="$Config/PropertyThreshold$" ParameterType="int" />
+        </OverrideableParameters>
+        <MonitorImplementation>
+          <MemberModules>
+            <DataSource ID="DS" TypeID="GripMatix.HA.Remote.Monitoring.PropertyBag.DataSource.Monitoring.PropertyBag.Check">
+              <IntervalSeconds>$Config/IntervalSeconds$</IntervalSeconds>
+              <SyncTime>$Config/SyncTime$</SyncTime>
+              <MonitorTarget>$Config/MonitorTarget$</MonitorTarget>
+            </DataSource>
+            <ConditionDetection ID="FilterSUCCESSStatus" TypeID="System!System.ExpressionFilter">
+              <Expression>
+                <SimpleExpression>
+                  <ValueExpression>
+                    <XPathQuery Type="Integer">Property[@Name='$Config/Property$']</XPathQuery>
+                  </ValueExpression>
+                  <Operator>LessEqual</Operator>
+                  <ValueExpression>
+                    <Value Type="Integer">$Config/PropertyThreshold$</Value>
+                  </ValueExpression>
+                </SimpleExpression>
+              </Expression>
+            </ConditionDetection>
+            <ConditionDetection ID="FilterFAILEDStatus" TypeID="System!System.ExpressionFilter">
+              <Expression>
+                <SimpleExpression>
+                  <ValueExpression>
+                    <XPathQuery Type="Integer">Property[@Name='$Config/Property$']</XPathQuery>
+                  </ValueExpression>
+                  <Operator>Greater</Operator>
+                  <ValueExpression>
+                    <Value Type="Integer">$Config/PropertyThreshold$</Value>
+                  </ValueExpression>
+                </SimpleExpression>
+              </Expression>
+            </ConditionDetection>
+          </MemberModules>
+          <RegularDetections>
+            <RegularDetection MonitorTypeStateID="FAILED">
+              <Node ID="FilterFAILEDStatus">
+                <Node ID="DS"/>
+              </Node>
+            </RegularDetection>
+            <RegularDetection MonitorTypeStateID="SUCCESS">
+              <Node ID="FilterSUCCESSStatus">
+                <Node ID="DS"/>
+              </Node>
+            </RegularDetection>
+          </RegularDetections>
+        </MonitorImplementation>
+      </UnitMonitorType>      
+    </MonitorTypes>
+  </TypeDefinitions>  
+  <Monitoring>
+    <Rules>
+      <Rule ID="GripMatix.HA.Remote.Monitoring.PerformanceRule.CpuPct" Target="GripMatix.HA.Remote.Monitoring.ChildObject" Enabled="true" ConfirmDelivery="false" Remotable="true" Priority="Normal" DiscardLevel="100" >
+        <Category>PerformanceCollection</Category>
+        <DataSources>
+          <DataSource ID="DS" TypeID="GripMatix.HA.Remote.Monitoring.PropertyBag.DataSource.Performance.PropertyBag.Check">
+            <IntervalSeconds>300</IntervalSeconds>
+            <SyncTime/>
+            <Object>$Target/Property[Type="GripMatix.HA.Remote.Monitoring.ChildObject"]/Name$</Object>
+            <Counter>CpuPct</Counter>
+            <MonitorTarget>$Target/Property[Type="GripMatix.HA.Remote.Monitoring.ChildObject"]/Target$</MonitorTarget>
+          </DataSource>
+        </DataSources>
+        <WriteActions>
+          <WriteAction ID="CollectToDB" TypeID="SC!Microsoft.SystemCenter.CollectPerformanceData" />
+          <WriteAction ID="CollectToDW" TypeID="MSDL!Microsoft.SystemCenter.DataWarehouse.PublishPerformanceData" />
+        </WriteActions>
+      </Rule>      
+    </Rules>
+    <Monitors>
+      <UnitMonitor ID="GripMatix.HA.Remote.Monitoring.Monitor.CpuPct" Accessibility="Internal" Enabled="true" Target="GripMatix.HA.Remote.Monitoring.ChildObject" ParentMonitorID="Health!System.Health.PerformanceState" Remotable="true" Priority="Normal" TypeID="GripMatix.HA.Remote.Monitoring.MonitorType.CpuPct.2state" ConfirmDelivery="false" RunAs="GripMatix.HA.Remote.Monitoring.RunAsProfile">
+        <Category>PerformanceHealth</Category>
+        <AlertSettings AlertMessage="GripMatix.HA.Remote.Monitoring.Monitor.CpuPct.AlertMessage">
+          <AlertOnState>Error</AlertOnState>
+          <AutoResolve>true</AutoResolve>
+          <AlertPriority>Normal</AlertPriority>
+          <AlertSeverity>MatchMonitorHealth</AlertSeverity>
+          <AlertParameters>
+            <AlertParameter1>$Data/Context/Property[@Name='CpuPct']$</AlertParameter1>
+          </AlertParameters>
+        </AlertSettings>
+        <OperationalStates>
+          <OperationalState ID="FAILED" MonitorTypeStateID="FAILED" HealthState="Error" />
+          <OperationalState ID="SUCCESS" MonitorTypeStateID="SUCCESS" HealthState="Success" />
+        </OperationalStates>
+        <Configuration>
+          <IntervalSeconds>300</IntervalSeconds>
+          <SyncTime/>
+          <MonitorTarget>$Target/Property[Type="GripMatix.HA.Remote.Monitoring.ChildObject"]/Target$</MonitorTarget>
+          <Property>CpuPct</Property>
+          <PropertyThreshold>60</PropertyThreshold>
+        </Configuration>
+      </UnitMonitor>
+    </Monitors>
+  </Monitoring>
+  <Presentation>
+    <StringResources>
+      <StringResource ID="GripMatix.HA.Remote.Monitoring.Monitor.CpuPct.AlertMessage" />
+    </StringResources>
+  </Presentation>
+  <LanguagePacks>
+    <LanguagePack ID="ENU" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.PerformanceRule.CpuPct">
+          <Name>% CPU</Name>
+          <Description></Description>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.Monitor.CpuPct">
+          <Name>% CPU</Name>
+          <Description>
+          </Description>
+        </DisplayString>
+        <DisplayString ElementID="GripMatix.HA.Remote.Monitoring.Monitor.CpuPct.AlertMessage">
+          <Name>% CPU is {0} which it too high</Name>
+          <Description>
+            % CPU is {0} which exceeded the threshold.
+          </Description>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPackFragment>
