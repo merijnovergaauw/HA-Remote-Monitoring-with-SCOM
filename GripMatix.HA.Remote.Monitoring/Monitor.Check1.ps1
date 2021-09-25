@@ -38,8 +38,6 @@ $api = New-Object -comObject 'MOM.ScriptAPI'
 $message = "$SCRIPT_NAME script started. Parameters:`n$params"
 Log-DebugEvent $SCRIPT_STARTED $EVENT_LEVEL_INFO $message
 
-$random = Get-Random -Minimum 1 -Maximum 100
-
 $cpuPct = Invoke-Command -ComputerName $monitorTarget -ScriptBlock {
 	Get-Ciminstance Win32_Processor | ? {$_.LoadPercentage -ne $null} | Measure-Object -Property LoadPercentage -Average | % {$_.Average}
 	}

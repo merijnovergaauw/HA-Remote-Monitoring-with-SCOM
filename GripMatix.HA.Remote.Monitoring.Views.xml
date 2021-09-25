@@ -2,13 +2,13 @@
   <Manifest>
     <Identity>
       <ID>GripMatix.HA.Remote.Monitoring.Views</ID>
-      <Version>1.0.0.0</Version>
+      <Version>1.0.0.3</Version>
     </Identity>
     <Name>GripMatix HA Remote Monitoring Views</Name>
     <References>
       <Reference Alias="HA">
         <ID>GripMatix.HA.Remote.Monitoring</ID>
-        <Version>1.0.0.33</Version>
+        <Version>1.0.0.0</Version>
         <PublicKeyToken>af3f51199b0e6def</PublicKeyToken>
       </Reference>
       <Reference Alias="SystemCenter">
