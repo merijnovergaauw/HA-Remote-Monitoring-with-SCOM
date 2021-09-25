@@ -10,14 +10,14 @@ $debug = $true
 # Constants used for event logging
 $SCRIPT_NAME			= 'Monitor.Check1'
 $EVENT_LEVEL_ERROR 		= 1
-$EVENT_LEVEL_WARNING 	= 2
+$EVENT_LEVEL_WARNING 		= 2
 $EVENT_LEVEL_INFO 		= 4
 
-$SCRIPT_STARTED			= 3111
+$SCRIPT_STARTED		= 3111
 $PROPERTYBAG_CREATED	= 3112
 $ERROR_GENERATED        = 3113
 $INFO_GENERATED         = 3114
-$SCRIPT_ENDED			= 3115
+$SCRIPT_ENDED		= 3115
 
 #==================================================================================
 function Log-DebugEvent
